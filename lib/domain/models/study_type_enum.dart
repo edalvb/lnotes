@@ -1,0 +1,4 @@
+enum StudyType {
+  repetitionCount,
+  timeMeasurement,
+}
