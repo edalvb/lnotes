@@ -1,7 +1,10 @@
+import 'package:injectable/injectable.dart';
+
 import '../models/study_record_model.dart';
 import '../models/study_type_enum.dart';
 import '../repositories/i_study_repository.dart';
 
+@injectable
 class SaveStudyRecordUseCase {
   final IStudyRepository _repository;
 

@@ -18,6 +18,8 @@ import '../../data/datasources/i_study_local_datasource.dart' as _i429;
 import '../../data/datasources/study_local_datasource_impl.dart' as _i107;
 import '../../data/repositories/study_repository_impl.dart' as _i648;
 import '../../domain/repositories/i_study_repository.dart' as _i307;
+import '../../domain/usecases/get_all_study_records_usecase.dart' as _i184;
+import '../../domain/usecases/save_study_record_usecase.dart' as _i737;
 import 'injection.dart' as _i464;
 
 extension GetItInjectableX on _i174.GetIt {
@@ -37,6 +39,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i307.IStudyRepository>(
       () => _i648.StudyRepositoryImpl(gh<_i429.IStudyLocalDatasource>()),
+    );
+    gh.factory<_i184.GetAllStudyRecordsUseCase>(
+      () => _i184.GetAllStudyRecordsUseCase(gh<_i307.IStudyRepository>()),
+    );
+    gh.factory<_i737.SaveStudyRecordUseCase>(
+      () => _i737.SaveStudyRecordUseCase(gh<_i307.IStudyRepository>()),
     );
     return this;
   }

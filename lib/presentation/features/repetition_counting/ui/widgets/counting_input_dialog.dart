@@ -16,7 +16,6 @@ class CountingInputDialog extends StatefulWidget {
 class _CountingInputDialogState extends State<CountingInputDialog> {
   final TextEditingController _countController = TextEditingController();
   bool _isTimerFinished = false;
-  String _formattedTime = '00:30';
 
   @override
   void dispose() {
@@ -24,15 +23,7 @@ class _CountingInputDialogState extends State<CountingInputDialog> {
     super.dispose();
   }
 
-  void _onTimerTick(String formattedTime) {
-    if (mounted) {
-      setState(() {
-        _formattedTime = formattedTime;
-      });
-    }
-  }
-
-  void _onTimerStop(Duration finalDuration) {
+  void _onTimerFinished() {
     if (mounted) {
       setState(() {
         _isTimerFinished = true;
@@ -50,24 +41,39 @@ class _CountingInputDialogState extends State<CountingInputDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(_formattedTime,
-              style: Theme.of(context)
-                  .textTheme
-                  .displayMedium
-                  ?.copyWith(color: AppTheme.primary, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 20),
           TimerControlWidget(
             mode: TimerMode.countdown,
             initialDuration: const Duration(seconds: 30),
             autoStart: true,
-            onTick: _onTimerTick,
-            onStop: _onTimerStop,
+            onStop: (_) => _onTimerFinished(),
+            builder: (context, formattedTime, isRunning, toggleTimer) {
+              return Column(
+                children: [
+                  Text(formattedTime,
+                      style: Theme.of(context)
+                          .textTheme
+                          .displayMedium
+                          ?.copyWith(color: AppTheme.primary, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 20),
+                  FloatingActionButton(
+                    heroTag: 'timer_control_fab',
+                    onPressed: toggleTimer,
+                    backgroundColor: isRunning ? AppTheme.tertiary : AppTheme.primary,
+                    child: Icon(
+                      isRunning ? Icons.pause : Icons.play_arrow,
+                      color: isRunning ? AppTheme.onTertiary : AppTheme.onPrimary,
+                      size: 36,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 24),
           TextField(
             controller: _countController,
             enabled: _isTimerFinished,
-            autofocus: true,
+            autofocus: _isTimerFinished,
             decoration: InputDecoration(
               labelText: 'Repetitions',
               hintText: 'Enter count...',

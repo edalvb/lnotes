@@ -1,24 +1,32 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
 
 enum TimerMode { countdown, stopwatch }
+
+typedef TimerBuilder = Widget Function(
+  BuildContext context,
+  String formattedTime,
+  bool isRunning,
+  VoidCallback toggleTimer,
+);
 
 class TimerControlWidget extends StatefulWidget {
   final TimerMode mode;
   final Duration initialDuration;
   final bool autoStart;
-  final Function(Duration) onStop;
-  final Function(String) onTick;
+  final Function(Duration)? onStop;
+  final Function(Duration)? onManualStop;
+  final TimerBuilder builder;
 
   const TimerControlWidget({
     super.key,
     required this.mode,
     this.initialDuration = Duration.zero,
     this.autoStart = false,
-    required this.onStop,
-    required this.onTick,
+    this.onStop,
+    this.onManualStop,
+    required this.builder,
   });
 
   @override
@@ -34,9 +42,10 @@ class _TimerControlWidgetState extends State<TimerControlWidget> {
   void initState() {
     super.initState();
     _currentDuration = widget.initialDuration;
-    widget.onTick(_formatDuration(_currentDuration));
     if (widget.autoStart) {
-      _startTimer();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _startTimer();
+      });
     }
   }
 
@@ -53,48 +62,46 @@ class _TimerControlWidgetState extends State<TimerControlWidget> {
     return '$minutes:$seconds';
   }
 
-  void _startTimer() {
-    if (_isRunning) return;
+  void _tick(Timer timer) {
+    if (!mounted) {
+      timer.cancel();
+      return;
+    }
 
     setState(() {
-      _isRunning = true;
-    });
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      setState(() {
-        if (widget.mode == TimerMode.countdown) {
-          if (_currentDuration.inSeconds > 0) {
-            _currentDuration -= const Duration(seconds: 1);
-          } else {
-            _stopTimer(notify: true);
-          }
+      if (widget.mode == TimerMode.countdown) {
+        if (_currentDuration.inSeconds > 0) {
+          _currentDuration -= const Duration(seconds: 1);
         } else {
-          _currentDuration += const Duration(seconds: 1);
+          _stopTimer(isAutoStop: true);
         }
-        widget.onTick(_formatDuration(_currentDuration));
-      });
+      } else {
+        _currentDuration += const Duration(seconds: 1);
+      }
     });
   }
 
-  void _stopTimer({bool notify = false}) {
-    if (!_isRunning) return;
+  void _startTimer() {
+    if (_isRunning) return;
+    setState(() => _isRunning = true);
+    _timer = Timer.periodic(const Duration(seconds: 1), _tick);
+  }
 
+  void _stopTimer({bool isAutoStop = false}) {
+    if (!_isRunning) return;
     _timer?.cancel();
-    setState(() {
-      _isRunning = false;
-    });
-    if (notify) {
-      widget.onStop(_currentDuration);
+    setState(() => _isRunning = false);
+
+    if (isAutoStop) {
+      widget.onStop?.call(_currentDuration);
+    } else {
+      widget.onManualStop?.call(_currentDuration);
     }
   }
 
-  void _handlePrimaryButton() {
+  void _toggleTimer() {
     if (_isRunning) {
-      _stopTimer(notify: true);
+      _stopTimer();
     } else {
       _startTimer();
     }
@@ -102,20 +109,11 @@ class _TimerControlWidgetState extends State<TimerControlWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        FloatingActionButton(
-          heroTag: 'timer_control_fab',
-          onPressed: _handlePrimaryButton,
-          backgroundColor: _isRunning ? AppTheme.tertiary : AppTheme.primary,
-          child: Icon(
-            _isRunning ? Icons.pause : Icons.play_arrow,
-            color: _isRunning ? AppTheme.onTertiary : AppTheme.onPrimary,
-            size: 36,
-          ),
-        ),
-      ],
+    return widget.builder(
+      context,
+      _formatDuration(_currentDuration),
+      _isRunning,
+      _toggleTimer,
     );
   }
 }

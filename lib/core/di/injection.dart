@@ -4,6 +4,8 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast_io.dart';
 
+import 'injection.config.dart';
+
 final getIt = GetIt.instance;
 
 @InjectableInit(
@@ -11,10 +13,7 @@ final getIt = GetIt.instance;
   preferRelativeImports: true,
   asExtension: true,
 )
-Future<void> configureDependencies() async {
-  final configService = ConfigService();
-  await configService.init();
-}
+Future<void> configureDependencies() => getIt.init();
 
 @module
 abstract class SembastModule {
@@ -25,14 +24,5 @@ abstract class SembastModule {
     await appDir.create(recursive: true);
     final dbPath = join(appDir.path, 'app.db');
     return await databaseFactoryIo.openDatabase(dbPath);
-  }
-}
-
-class ConfigService {
-  ConfigService() {
-    init();
-  }
-  Future init() async {
-    GetIt.instance.signalReady(this);
   }
 }

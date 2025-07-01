@@ -1,6 +1,9 @@
+import 'package:injectable/injectable.dart';
+
 import '../models/study_record_model.dart';
 import '../repositories/i_study_repository.dart';
 
+@injectable
 class GetAllStudyRecordsUseCase {
   final IStudyRepository _repository;
 

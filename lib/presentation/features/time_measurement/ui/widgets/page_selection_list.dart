@@ -1,8 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../core/shared_widgets/timer_control/timer_control_widget.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../application/time_measurement_notifier.dart';
 
@@ -33,56 +32,24 @@ class _PageListItem extends ConsumerStatefulWidget {
 }
 
 class _PageListItemState extends ConsumerState<_PageListItem> {
-  Timer? _timer;
-  Duration _duration = Duration.zero;
-  bool _isRunning = false;
+  Key _timerKey = UniqueKey();
+  Duration _initialDuration = Duration.zero;
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$minutes:$seconds';
-  }
-
-  void _toggleTimer() {
-    if (_isRunning) {
-      _stopTimer();
-    } else {
-      _startTimer();
-    }
-  }
-
-  void _startTimer() {
-    if (_isRunning) return;
-    setState(() => _isRunning = true);
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
-        setState(() => _duration += const Duration(seconds: 1));
-      }
+  void _onTimerStop(Duration duration) {
+    if (!mounted) return;
+    setState(() {
+      _initialDuration = duration;
     });
-  }
-
-  void _stopTimer() {
-    if (!_isRunning) return;
-    _timer?.cancel();
-    setState(() => _isRunning = false);
     ref.read(timeMeasurementNotifierProvider.notifier).saveRecord(
           pageNumber: widget.pageNumber,
-          time: _duration,
+          time: duration,
         );
   }
 
   void _resetTimer() {
-    _timer?.cancel();
     setState(() {
-      _duration = Duration.zero;
-      _isRunning = false;
+      _initialDuration = Duration.zero;
+      _timerKey = UniqueKey();
     });
   }
 
@@ -90,46 +57,55 @@ class _PageListItemState extends ConsumerState<_PageListItem> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        side: const BorderSide(color: AppTheme.outlineVariant),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      color: AppTheme.surfaceContainerLow,
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Text('Page ${widget.pageNumber}',
-                style: textTheme.titleLarge?.copyWith(
-                    color: AppTheme.onSurface, fontWeight: FontWeight.bold)),
-            const Spacer(),
-            Text(_formatDuration(_duration),
-                style: textTheme.titleLarge?.copyWith(
-                    fontFamily: 'monospace',
-                    fontWeight: FontWeight.w600,
-                    color: _isRunning
-                        ? AppTheme.secondary
-                        : AppTheme.onSurfaceVariant)),
-            const SizedBox(width: 16),
-            IconButton(
-                onPressed: _toggleTimer,
-                icon: Icon(_isRunning
-                    ? Icons.stop_circle_outlined
-                    : Icons.play_circle_outline_rounded),
-                iconSize: 32,
-                color: _isRunning ? AppTheme.error : AppTheme.secondary),
-            if (!_isRunning && _duration > Duration.zero)
-              IconButton(
-                  onPressed: _resetTimer,
-                  icon: const Icon(Icons.refresh),
-                  iconSize: 28,
-                  color: AppTheme.onSurfaceVariant),
-          ],
-        ),
-      ),
+    return TimerControlWidget(
+      key: _timerKey,
+      mode: TimerMode.stopwatch,
+      initialDuration: _initialDuration,
+      onManualStop: _onTimerStop,
+      builder: (context, formattedTime, isRunning, toggleTimer) {
+        final showResetButton = !isRunning && _initialDuration > Duration.zero;
+
+        return Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            side: const BorderSide(color: AppTheme.outlineVariant),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          color: AppTheme.surfaceContainerLow,
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Text('Page ${widget.pageNumber}',
+                    style: textTheme.titleLarge?.copyWith(
+                        color: AppTheme.onSurface, fontWeight: FontWeight.bold)),
+                const Spacer(),
+                Text(formattedTime,
+                    style: textTheme.titleLarge?.copyWith(
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.w600,
+                        color: isRunning ? AppTheme.secondary : AppTheme.onSurfaceVariant)),
+                const SizedBox(width: 16),
+                IconButton(
+                  onPressed: toggleTimer,
+                  icon: Icon(isRunning
+                      ? Icons.stop_circle_outlined
+                      : Icons.play_circle_outline_rounded),
+                  iconSize: 32,
+                  color: isRunning ? AppTheme.error : AppTheme.secondary,
+                ),
+                if (showResetButton)
+                  IconButton(
+                      onPressed: _resetTimer,
+                      icon: const Icon(Icons.refresh),
+                      iconSize: 28,
+                      color: AppTheme.onSurfaceVariant),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
