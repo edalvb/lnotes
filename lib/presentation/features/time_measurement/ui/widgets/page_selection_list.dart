@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../core/di/injection.dart';
+import '../../../../../core/services/audio_player_service.dart';
 import '../../../../../core/shared_widgets/timer_control/timer_control_widget.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../application/time_measurement_notifier.dart';
@@ -34,9 +36,15 @@ class _PageListItem extends ConsumerStatefulWidget {
 class _PageListItemState extends ConsumerState<_PageListItem> {
   Key _timerKey = UniqueKey();
   Duration _initialDuration = Duration.zero;
+  final _audioService = getIt<AudioPlayerService>();
 
   void _onTimerStop(Duration duration) {
     if (!mounted) return;
+
+    if (_initialDuration == Duration.zero) {
+      _audioService.playAlarmSound();
+    }
+
     setState(() {
       _initialDuration = duration;
     });
@@ -62,6 +70,7 @@ class _PageListItemState extends ConsumerState<_PageListItem> {
       mode: TimerMode.stopwatch,
       initialDuration: _initialDuration,
       onManualStop: _onTimerStop,
+      onStop: (duration) => _onTimerStop(duration),
       builder: (context, formattedTime, isRunning, toggleTimer) {
         final showResetButton = !isRunning && _initialDuration > Duration.zero;
 

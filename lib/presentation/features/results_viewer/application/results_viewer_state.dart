@@ -22,7 +22,7 @@ class ResultsViewerState {
     return ResultsViewerState(
       isLoading: isLoading ?? this.isLoading,
       records: records ?? this.records,
-      error: error ?? this.error,
+      error: error, 
     );
   }
 }

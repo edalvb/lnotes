@@ -25,6 +25,16 @@ class StudyLocalDatasourceImpl implements IStudyLocalDatasource {
   Future<void> saveRecord(StudyRecordModel record) async {
     await _recordStore.record(record.id).put(_database, _StudyRecordMapper.toMap(record));
   }
+
+  @override
+  Future<void> deleteRecord(String recordId) async {
+    await _recordStore.record(recordId).delete(_database);
+  }
+
+  @override
+  Future<void> deleteAllRecords() async {
+    await _recordStore.drop(_database);
+  }
 }
 
 class _StudyRecordMapper {

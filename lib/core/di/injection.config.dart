@@ -18,8 +18,11 @@ import '../../data/datasources/i_study_local_datasource.dart' as _i429;
 import '../../data/datasources/study_local_datasource_impl.dart' as _i107;
 import '../../data/repositories/study_repository_impl.dart' as _i648;
 import '../../domain/repositories/i_study_repository.dart' as _i307;
+import '../../domain/usecases/delete_all_study_records_usecase.dart' as _i275;
+import '../../domain/usecases/delete_study_record_usecase.dart' as _i115;
 import '../../domain/usecases/get_all_study_records_usecase.dart' as _i184;
 import '../../domain/usecases/save_study_record_usecase.dart' as _i737;
+import '../services/audio_player_service.dart' as _i887;
 import 'injection.dart' as _i464;
 
 extension GetItInjectableX on _i174.GetIt {
@@ -34,6 +37,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => sembastModule.database,
       preResolve: true,
     );
+    gh.lazySingleton<_i887.AudioPlayerService>(
+      () => _i887.AudioPlayerService(),
+    );
     gh.lazySingleton<_i429.IStudyLocalDatasource>(
       () => _i107.StudyLocalDatasourceImpl(gh<_i310.Database>()),
     );
@@ -45,6 +51,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i737.SaveStudyRecordUseCase>(
       () => _i737.SaveStudyRecordUseCase(gh<_i307.IStudyRepository>()),
+    );
+    gh.factory<_i275.DeleteAllStudyRecordsUseCase>(
+      () => _i275.DeleteAllStudyRecordsUseCase(gh<_i307.IStudyRepository>()),
+    );
+    gh.factory<_i115.DeleteStudyRecordUseCase>(
+      () => _i115.DeleteStudyRecordUseCase(gh<_i307.IStudyRepository>()),
     );
     return this;
   }

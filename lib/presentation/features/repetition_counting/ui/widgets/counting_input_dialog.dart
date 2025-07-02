@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../../core/di/injection.dart';
+import '../../../../../core/services/audio_player_service.dart';
 import '../../../../../core/shared_widgets/timer_control/timer_control_widget.dart';
 import '../../../../../core/theme/app_theme.dart';
 
@@ -15,6 +17,7 @@ class CountingInputDialog extends StatefulWidget {
 
 class _CountingInputDialogState extends State<CountingInputDialog> {
   final TextEditingController _countController = TextEditingController();
+  final _audioService = getIt<AudioPlayerService>();
   bool _isTimerFinished = false;
 
   @override
@@ -25,6 +28,7 @@ class _CountingInputDialogState extends State<CountingInputDialog> {
 
   void _onTimerFinished() {
     if (mounted) {
+      _audioService.playAlarmSound();
       setState(() {
         _isTimerFinished = true;
       });
