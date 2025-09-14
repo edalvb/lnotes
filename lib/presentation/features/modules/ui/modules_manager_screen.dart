@@ -6,6 +6,8 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../domain/models/module_model.dart';
 import '../../../../domain/usecases/modules_usecases.dart';
+import '../../../features/exercises/application/exercises_provider.dart';
+import '../../../../domain/usecases/exercises_usecases.dart';
 
 final modulesProvider = FutureProvider((ref) {
   final usecase = getIt<GetAllModulesUseCase>();
@@ -99,6 +101,109 @@ class _ModulesManagerScreenState extends ConsumerState<ModulesManagerScreen> {
     ref.invalidate(modulesProvider);
   }
 
+  Future<void> _seedExercises(ModuleModel module) async {
+    final prefixCtrl = TextEditingController(text: '');
+    final startCtrl = TextEditingController(text: '1');
+    final endCtrl = TextEditingController(text: '10');
+    var clearBefore = false;
+    final params = await showDialog<SeedExercisesParams?>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setState) => AlertDialog(
+            title: Text('Sembrar ejercicios en "${module.nombre}"'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: prefixCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Prefijo (opcional, ej. Pág. )',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: startCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Inicio',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextField(
+                        controller: endCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Fin',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                CheckboxListTile(
+                  value: clearBefore,
+                  onChanged: (v) => setState(() => clearBefore = v ?? false),
+                  title: const Text('Eliminar existentes antes de sembrar'),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancelar'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final s = int.tryParse(startCtrl.text.trim());
+                  final e = int.tryParse(endCtrl.text.trim());
+                  if (s == null || e == null) {
+                    Navigator.pop(ctx);
+                    return;
+                  }
+                  Navigator.pop(
+                    ctx,
+                    SeedExercisesParams(
+                      moduleId: module.id,
+                      prefix: prefixCtrl.text,
+                      start: s,
+                      end: e,
+                      clearBefore: clearBefore,
+                    ),
+                  );
+                },
+                child: const Text('Sembrar'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (params == null) return;
+
+    final usecase = getIt<SeedExercisesForModuleUseCase>();
+    final result = await usecase(params);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Sembrado: +${result.inserted}, omitidos: ${result.skipped}, borrados: ${result.deleted}',
+        ),
+      ),
+    );
+    ref.invalidate(exercisesByModuleProvider(module.id));
+  }
+
   @override
   Widget build(BuildContext context) {
     final listAsync = ref.watch(modulesProvider);
@@ -125,6 +230,11 @@ class _ModulesManagerScreenState extends ConsumerState<ModulesManagerScreen> {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  IconButton(
+                    tooltip: 'Sembrar ejercicios',
+                    onPressed: () => _seedExercises(m),
+                    icon: const Icon(Icons.auto_awesome_outlined),
+                  ),
                   IconButton(
                     onPressed: () => context.push('/manage-pages/${m.nombre}'),
                     icon: const Icon(Icons.list_alt_outlined),
