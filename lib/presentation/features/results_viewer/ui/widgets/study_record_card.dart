@@ -39,7 +39,7 @@ class StudyRecordCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Page ${record.pageNumber}',
+                    record.pageLabel,
                     style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppTheme.onSurface,

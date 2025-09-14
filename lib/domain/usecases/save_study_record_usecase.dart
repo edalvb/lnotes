@@ -11,13 +11,13 @@ class SaveStudyRecordUseCase {
   SaveStudyRecordUseCase(this._repository);
 
   Future<void> call({
-    required int pageNumber,
+    required String pageLabel,
     required StudyType type,
     required double value,
   }) async {
     final newRecord = StudyRecordModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      pageNumber: pageNumber,
+      pageLabel: pageLabel,
       type: type,
       value: value,
       createdAt: DateTime.now(),

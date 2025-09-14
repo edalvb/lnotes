@@ -18,13 +18,13 @@ class RepetitionCountingNotifier extends _$RepetitionCountingNotifier {
   }
 
   Future<bool> saveRecord({
-    required int pageNumber,
+    required String pageLabel,
     required int count,
   }) async {
     state = state.copyWith(isSaving: true, error: null);
     try {
       await _saveStudyRecordUseCase(
-        pageNumber: pageNumber,
+        pageLabel: pageLabel,
         type: StudyType.repetitionCount,
         value: count.toDouble(),
       );

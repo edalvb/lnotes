@@ -7,9 +7,9 @@ import '../../../../../core/shared_widgets/timer_control/timer_control_widget.da
 import '../../../../../core/theme/app_theme.dart';
 
 class CountingInputDialog extends StatefulWidget {
-  final int pageNumber;
+  final String pageLabel;
 
-  const CountingInputDialog({super.key, required this.pageNumber});
+  const CountingInputDialog({super.key, required this.pageLabel});
 
   @override
   State<CountingInputDialog> createState() => _CountingInputDialogState();
@@ -40,7 +40,8 @@ class _CountingInputDialogState extends State<CountingInputDialog> {
     return AlertDialog(
       backgroundColor: AppTheme.surfaceContainerLow,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      title: Text('Practice Page ${widget.pageNumber}',
+      title: Text(
+        'Practice ${widget.pageLabel}',
           textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
       content: Column(
         mainAxisSize: MainAxisSize.min,

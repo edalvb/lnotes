@@ -39,7 +39,7 @@ class TimeMeasurementScreen extends ConsumerWidget {
         foregroundColor: AppTheme.onSurface,
         elevation: 0,
       ),
-      body: PageSelectionList(),
+      body: const PageSelectionList(moduleName: 'time_measurement'),
     );
   }
 }

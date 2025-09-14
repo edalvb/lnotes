@@ -10,17 +10,21 @@ class RepetitionCountingScreen extends ConsumerWidget {
   static const String route = '/repetition-counting';
   const RepetitionCountingScreen({super.key});
 
-  void _showCountingDialog(BuildContext context, WidgetRef ref, int pageNumber) async {
+  void _showCountingDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String pageLabel,
+  ) async {
     final int? count = await showDialog<int>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => CountingInputDialog(pageNumber: pageNumber),
+      builder: (context) => CountingInputDialog(pageLabel: pageLabel),
     );
 
     if (count != null && context.mounted) {
       final success = await ref
           .read(repetitionCountingNotifierProvider.notifier)
-          .saveRecord(pageNumber: pageNumber, count: count);
+          .saveRecord(pageLabel: pageLabel, count: count);
 
       if (context.mounted) {
         final message = success ? 'Record saved!' : 'Failed to save record.';
@@ -53,7 +57,8 @@ class RepetitionCountingScreen extends ConsumerWidget {
         elevation: 0,
       ),
       body: PageSelectionGrid(
-        onPageSelected: (page) => _showCountingDialog(context, ref, page),
+        onPageSelected: (label) => _showCountingDialog(context, ref, label),
+        moduleName: 'repetition_counting',
       ),
     );
   }

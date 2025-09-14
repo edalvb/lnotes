@@ -18,14 +18,14 @@ class TimeMeasurementNotifier extends _$TimeMeasurementNotifier {
   }
 
   Future<void> saveRecord({
-    required int pageNumber,
+    required String pageLabel,
     required Duration time,
   }) async {
     state = state.copyWith(isSaving: true, error: null);
     try {
       final valueInSeconds = time.inMilliseconds / 1000.0;
       await _saveStudyRecordUseCase(
-        pageNumber: pageNumber,
+        pageLabel: pageLabel,
         type: StudyType.timeMeasurement,
         value: valueInSeconds,
       );
